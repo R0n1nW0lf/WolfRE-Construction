@@ -1,1 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WolfRE-Construction Phase 1.2.3</title>
+<style>
+:root{--bg:#07111f;--panel:#0c1a2b;--panel2:#10243a;--line:#254765;--text:#e8f2fb;--muted:#94aac0;--accent:#69c6ff;--good:#83e3aa;--warn:#ffd479;--danger:#ff8f8f;--purple:#d1a5ff;--cyan:#8de9e2;--api:#ffbd8a}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#06101c,#0a1727 45%,#07111f);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.wrap{max-width:1180px;margin:auto;padding:28px 18px 60px}
+header{text-align:center;margin-bottom:22px}h1{margin:0;font-size:34px;letter-spacing:.8px}.brand-wolf{color:var(--accent)}.brand-re{color:#ff9f43}.brand-construction{color:var(--text)}.tag{color:var(--muted);margin-top:5px}.phase{display:inline-block;margin-top:9px;padding:4px 9px;border:1px solid var(--line);border-radius:999px;color:var(--good);font-size:12px}
+.notice{border:1px solid #735f2a;background:#211d12;padding:10px 13px;border-radius:10px;color:#f4dda1;margin-bottom:16px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:850px){.grid{grid-template-columns:1fr}}
+.card{background:rgba(12,26,43,.94);border:1px solid var(--line);border-radius:14px;padding:15px;box-shadow:0 12px 35px #0004}.card h2{font-size:16px;margin:0 0 10px}.drop{border:2px dashed #376384;border-radius:12px;padding:14px;text-align:center;color:var(--muted);margin-bottom:10px}.drop.drag{border-color:var(--accent);background:#102b43}textarea{width:100%;min-height:300px;resize:vertical;background:#050c14;color:#dceafb;border:1px solid var(--line);border-radius:10px;padding:12px;font:13px/1.45 Consolas,Monaco,monospace}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.savebox{margin-top:12px;padding:10px;border:1px solid #203f59;border-radius:10px;background:#091522}.savebox label{display:block;font-weight:700;margin-bottom:6px}.savebox input{width:100%;background:#050c14;color:#e8f2fb;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:13px Consolas,Monaco,monospace}.savehint{margin-top:5px;color:var(--muted);font-size:12px}button{background:#173654;color:#eef8ff;border:1px solid #35678d;border-radius:9px;padding:9px 13px;font-weight:650;cursor:pointer}button:hover{background:#20476c}.primary{background:#176b96;border-color:#39a8dd}.danger{background:#542626;border-color:#8c4141}.status{margin-top:8px;color:var(--muted);min-height:21px}
+.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 14px}@media(max-width:760px){.summary{grid-template-columns:repeat(2,1fr)}}.stat{background:#091522;border:1px solid #1d3a53;border-radius:9px;padding:8px;text-align:center}.stat b{display:block;font-size:19px;color:var(--accent)}
+.section{border:1px solid #203f59;border-radius:10px;margin:9px 0;overflow:hidden}.section summary{cursor:pointer;padding:10px 12px;background:#0d2134;font-weight:700}.section .body{padding:10px 12px;background:#07131f;white-space:pre-wrap;word-break:break-word;font:13px/1.55 Consolas,Monaco,monospace}.empty{color:#62798e;font-style:italic}.raw{max-height:390px;overflow:auto}
+mark{padding:1px 3px;border-radius:3px;color:#081018}mark.proc{background:#ffd479}mark.net{background:#8de9e2}mark.path{background:#83e3aa}mark.reg{background:#d1a5ff}mark.hash{background:#ffaaa0}mark.key{background:#b8c8ff}mark.api{background:#ffbd8a}.legend{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:8px 0}.pill{border:1px solid #2c4e68;border-radius:999px;padding:3px 7px}.footer{text-align:center;color:#668097;font-size:12px;margin-top:18px}
 
+.offline-actions{display:flex;justify-content:flex-start;margin-bottom:16px}.offline-download{border-color:var(--accent)}.offline-download:focus-visible{outline:3px solid var(--good);outline-offset:3px}
+</style>
+</head>
+<body><div class="wrap"><div class="offline-actions"><button type="button" id="downloadOffline" class="offline-download">Download for offline use</button></div>
+<header><h1><span class="brand-wolf">🐺 Wolf</span><span class="brand-re">RE</span><span class="brand-construction">-Construction</span></h1><div class="tag">Preserve the raw. Reconstruct the structure. Highlight the evidence.</div><span class="phase">Phase 1.2.3 • Offline</span></header>
+<div class="notice"><b>Safety:</b> This tool treats imported content as text only. It does not execute commands, scripts, URLs, or embedded code. Highlighted items are analyst-interest indicators, not automatic proof of malicious activity. Always verify against Raw Original.</div>
+<div class="grid">
+<section class="card"><h2>1. Raw Input</h2><div id="drop" class="drop">Drop a .txt/.log/.csv/.json/.xml file here, or paste text below</div><textarea id="input" spellcheck="false" placeholder="Paste decoded or messy analyst text here..."></textarea><div class="actions"><button class="primary" id="reconstruct">Reconstruct</button><button id="loadSample">Load Safe Sample</button><button class="danger" id="clear">Clear</button></div><div class="status" id="status">No data loaded.</div></section>
+<section class="card"><h2>2. Analyst Reconstruction</h2><div class="summary"><div class="stat"><b id="cProc">0</b>Processes</div><div class="stat"><b id="cNet">0</b>Network</div><div class="stat"><b id="cHash">0</b>Hashes</div><div class="stat"><b id="cPath">0</b>Paths</div><div class="stat"><b id="cApi">0</b>API / Memory</div></div><div class="legend"><span class="pill">Process / command</span><span class="pill">Network</span><span class="pill">File / path</span><span class="pill">Registry</span><span class="pill">Hash</span><span class="pill">API / memory</span><span class="pill">Interesting keyword</span></div><div id="results"></div><div class="savebox"><label for="reportName">Report filename</label><input id="reportName" type="text" maxlength="120" spellcheck="false" placeholder="Example: Case-1042_PowerShell_Analysis_Reports"><div class="savehint">Choose a meaningful name. WolfRE keeps the _Reports suffix and adds .txt or .html automatically. Invalid filename characters are replaced safely.</div></div><div class="actions"><button id="saveTxt">Save Report .txt</button><button id="saveHtml">Save Report .html</button></div></section>
+</div><div class="purpose" style="margin-top:16px;padding:13px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--muted)"><b style="color:var(--text)">Privacy Disclaimer</b><p>WolfRE-Construction runs locally in your browser. It does not upload, transmit, or remotely store the input, reconstructed output, or reports. Nothing is recorded by WolfRE-Construction on the developer end. Evidence is saved to your device only when you choose <b>Save Report .txt</b> or <b>Save Report .html</b>. Avoid saving sensitive data unless you intend to keep a local copy. <b>Download for offline use</b> saves a clean app copy without your evidence.</p></div><div class="footer">WolfRE-Construction Phase 1.2.3 • Local browser analysis • No network requests</div></div>
+<script>
+'use strict';
+const offlineAppHtml='<!doctype html>\n'+document.documentElement.outerHTML;
+document.getElementById('downloadOffline').onclick=()=>download('WolfRE-Construction_Phase1.2.3_Offline.html','text/html;charset=utf-8',offlineAppHtml);
+
+const $=id=>document.getElementById(id), input=$('input'), results=$('results'), status=$('status'), reportName=$('reportName');
+let report=null, reportNameTouched=false;
+function timestampName(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `WolfRE_Analysis_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}_Reports`;}
+function sanitizeFilename(name){let v=String(name||'').trim().replace(/[<>:"/\\|?*\x00-\x1F]/g,'_').replace(/[ .]+$/g,'').replace(/_+/g,'_');if(!v)v=timestampName();return v.slice(0,120);}
+function reportBaseName(){let base=sanitizeFilename(reportName.value);if(!/_reports$/i.test(base))base+='_Reports';return base;}
+function suggestNameFromFile(filename){const stem=String(filename||'').replace(/\.[^.]+$/,'').trim();if(stem&&!reportNameTouched)reportName.value=sanitizeFilename(stem+'_Analysis_Reports');}
+reportName.value=timestampName();
+reportName.addEventListener('input',()=>{reportNameTouched=true;});
+const uniq=a=>[...new Set(a.map(x=>String(x).trim()).filter(Boolean))];
+function uniqCI(a){const seen=new Set(),out=[];for(const raw of a){const v=String(raw).trim();if(!v)continue;const k=v.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(v);}}return out;}
+function collect(re,text,group=0){return uniq([...text.matchAll(re)].map(m=>m[group]).filter(v=>v!==undefined));}
+function escapeRegex(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function validPort(v){const n=Number(v);return Number.isInteger(n)&&n>=0&&n<=65535;}
+
+const processExt='(?:exe|dll|sys|ps1|bat|cmd|vbs|js|msi)';
+const keywordTerms=[
+ 'Invoke-WebRequest','Invoke-RestMethod','DownloadString','FromBase64String','EncodedCommand','ExecutionPolicy','Invoke-Expression',
+ 'PowerShell','pwsh','cmd','wscript','cscript','rundll32','regsvr32','mshta','certutil','curl','wget','bitsadmin','schtasks','netsh','whoami','ipconfig','tasklist','systeminfo',
+ 'NoProfile','WindowStyle','Hidden','Bypass','IEX','User-Agent','Referer','Cookie','X-Forwarded-For','Request','Response',
+ 'GET','POST','PUT','DELETE','HEAD','OPTIONS','PATCH','TCP','UDP','DNS','HTTP','HTTPS','Registry','RunOnce','ScheduledTask','Startup','Service','ImagePath',
+ 'WMIEventFilter','WMIConsumer','WinlogonShell','WinlogonUserinit','Mutex','NamedPipe','Run','AtLogOn','OnLogon','TaskName','Trigger','Persistence','Proxy','Base64','XOR','Write','Connect','Download','Upload','Callback','Beacon','C2','Sleep','Jitter'
+];
+const apiTerms=[
+ 'OpenProcess','VirtualAlloc','VirtualAllocEx','VirtualProtect','WriteProcessMemory','ReadProcessMemory','CreateRemoteThread','CreateThread','QueueUserAPC','NtCreateThreadEx',
+ 'NtWriteVirtualMemory','NtAllocateVirtualMemory','LoadLibraryA','LoadLibraryW','GetProcAddress','CreateProcessA','CreateProcessW','WinExec','ShellExecute','ShellExecuteEx',
+ 'IsDebuggerPresent','CheckRemoteDebuggerPresent','GetTickCount','QueryPerformanceCounter','CreateMutexA','CreateMutexW','RegOpenKeyExA','RegOpenKeyExW','RegSetValueExA','RegSetValueExW',
+ 'InternetOpenA','InternetOpenW','InternetOpen','InternetConnectA','InternetConnectW','InternetConnect','HttpOpenRequestA','HttpOpenRequestW','HttpOpenRequest','HttpSendRequestA','HttpSendRequestW','HttpSendRequest',
+ 'WinHttpOpen','WinHttpConnect','WinHttpOpenRequest','WinHttpSendRequest','SetWindowsHookExA','SetWindowsHookExW','CreateToolhelp32Snapshot','Process32First','Process32Next'
+];
+function tokenRegex(terms){return new RegExp('(?<![A-Za-z0-9])(?:'+terms.slice().sort((a,b)=>b.length-a.length).map(escapeRegex).join('|')+')(?![A-Za-z0-9])','gi');}
+const keywordRe=tokenRegex(keywordTerms), apiRe=tokenRegex(apiTerms);
+
+function isIPv6(s){
+ s=s.replace(/^\[|\]$/g,'');
+ if(!s.includes(':')||s.includes('.'))return false;
+ if((s.match(/::/g)||[]).length>1)return false;
+ const halves=s.split('::');
+ const validPart=p=>/^[0-9A-Fa-f]{1,4}$/.test(p);
+ const left=halves[0]?halves[0].split(':'):[];
+ const right=halves.length>1&&halves[1]?halves[1].split(':'):[];
+ if(left.some(x=>!validPart(x))||right.some(x=>!validPart(x)))return false;
+ if(halves.length===1)return left.length===8;
+ return left.length+right.length<8;
+}
+function extractIPv6(text){
+ const raw=text.match(/[0-9A-Fa-f:]{2,}/g)||[];
+ return uniq(raw.map(x=>x.replace(/^:+|:+$/g,'')).filter(x=>x.includes(':')&&isIPv6(x)));
+}
+function extractPorts(text){
+ const out=[]; let m;
+ const context=/\b(?:dest_port|dst_port|src_port|source_port|sport|dport|port)\b\s*(?:[=:]|\s)\s*["']?(\d{1,5})\b/gi;
+ while((m=context.exec(text)))if(validPort(m[1]))out.push(m[1]);
+ const ipPort=/\b(?:\d{1,3}\.){3}\d{1,3}:(\d{1,5})\b/g;
+ while((m=ipPort.exec(text)))if(validPort(m[1]))out.push(m[1]);
+ const ipv6Port=/\[[0-9A-Fa-f:]+\]:(\d{1,5})\b/g;
+ while((m=ipv6Port.exec(text)))if(validPort(m[1]))out.push(m[1]);
+ return uniq(out);
+}
+function artifactEnd(tail){
+ let end=tail.length;
+ const strong=[/\|/,/;;;+/,/__+/,/[<>]/];
+ for(const re of strong){const m=tail.match(re);if(m)end=Math.min(end,m.index);}
+ const field=tail.match(/\s+(?=[A-Za-z_][A-Za-z0-9_-]{1,40}\s*=)/);
+ if(field)end=Math.min(end,field.index);
+ return end;
+}
+function cleanArtifact(s){return s.trim().replace(/["']+$/,'').replace(/[;,]+$/,'').trim();}
+function extractWindowsPaths(text){
+ const out=[];
+ for(const line of text.split(/\r?\n/)){
+  const re=/(?:[A-Za-z]:\\|\\\\[A-Za-z0-9_.-]+\\(?!\\))/g; let m;
+  while((m=re.exec(line))){
+   const start=m.index, tail=line.slice(start); let end=artifactEnd(tail);
+   const prev=line[start-1]; if(prev==='"'||prev==="'"){const q=tail.indexOf(prev);if(q>=0)end=Math.min(end,q);}
+   const candidate=cleanArtifact(tail.slice(0,end));
+   if(candidate.length>=3)out.push(candidate);
+   re.lastIndex=Math.max(re.lastIndex,start+Math.max(candidate.length,3));
+  }
+ }
+ return uniq(out);
+}
+function extractRegistry(text){
+ const out=[];
+ for(const line of text.split(/\r?\n/)){
+  const re=/\b(?:HKLM|HKCU|HKCR|HKU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER|HKEY_CLASSES_ROOT|HKEY_USERS)(?=\\)/gi; let m;
+  while((m=re.exec(line))){
+   const start=m.index, tail=line.slice(start); let end=artifactEnd(tail);
+   const prev=line[start-1]; if(prev==='"'||prev==="'"){const q=tail.indexOf(prev);if(q>=0)end=Math.min(end,q);}
+   const candidate=cleanArtifact(tail.slice(0,end));
+   if(candidate.includes('\\'))out.push(candidate);
+   re.lastIndex=Math.max(re.lastIndex,start+Math.max(candidate.length,3));
+  }
+ }
+ return uniq(out);
+}
+function extractProcesses(text){
+ const fileArtifacts=collect(new RegExp('\\b[A-Za-z0-9_.-]+\\.'+processExt+'\\b','gi'),text);
+ const contextual=[]; let m;
+ const context=new RegExp('\\b(?:process|process_name|parent|child|shell|engine)\\s*[:=]\\s*["\']?([A-Za-z0-9_.-]+(?:\\.'+processExt+')?)','gi');
+ while((m=context.exec(text)))contextual.push(m[1]);
+ return uniqCI([...contextual,...fileArtifacts]);
+}
+function analyze(text){
+ const processes=extractProcesses(text);
+ const ipv4=collect(/\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g,text);
+ const ipv6=extractIPv6(text);
+ const ports=extractPorts(text);
+ const urls=collect(/\b(?:https?|hxxps?):\/\/(?:\[[0-9A-Fa-f:]+\]|[A-Za-z0-9._\[\]-]+)(?::\d{1,5})?(?:\/[^\s"'<>]*)?/gi,text);
+ const domains=collect(/\b(?:[A-Za-z0-9-]+(?:\.|\[\.\]))+(?:com|net|org|io|gov|edu|test|local|example)\b/gi,text);
+ const windowsPaths=extractWindowsPaths(text);
+ const unixPaths=collect(/\/(?:home|tmp|var|etc|opt|usr)\/[A-Za-z0-9_./() -]+/g,text).map(x=>x.trim());
+ const paths=uniq([...windowsPaths,...unixPaths]);
+ const registry=extractRegistry(text);
+ const sha512=collect(/\b[a-fA-F0-9]{128}\b/g,text);
+ const sha256=collect(/\b[a-fA-F0-9]{64}\b/g,text);
+ const sha1=collect(/\b[a-fA-F0-9]{40}\b/g,text);
+ const md5=collect(/\b[a-fA-F0-9]{32}\b/g,text);
+ const keywords=uniqCI(collect(keywordRe,text));
+ const api=uniqCI(collect(apiRe,text));
+ return {processes,ipv4,ipv6,ports,urls,domains,paths,registry,sha512,sha256,sha1,md5,keywords,api,raw:text};
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function canonicalDomain(s){return String(s).toLowerCase().replace(/\[\.\]/g,'.');}
+function summaryDomains(rep){const seen=new Set(),out=[];for(const d of rep.domains){const k=canonicalDomain(d);if(!seen.has(k)){seen.add(k);out.push(d);}}return out;}
+function summaryUrlsDomains(rep){return uniq([...rep.urls,...summaryDomains(rep)]);}
+function addLiteralSpans(spans,text,values,cls,priority){
+ const lower=text.toLowerCase();
+ for(const value of values){
+  if(!value)continue; const needle=value.toLowerCase(); let pos=0;
+  while((pos=lower.indexOf(needle,pos))!==-1){
+   const simple=/^[A-Za-z0-9_-]+$/.test(value);
+   const before=pos>0?text[pos-1]:''; const after=pos+value.length<text.length?text[pos+value.length]:'';
+   if(!simple||(!/[A-Za-z0-9]/.test(before)&&!/[A-Za-z0-9]/.test(after)))spans.push({start:pos,end:pos+value.length,cls,priority});
+   pos+=Math.max(value.length,1);
+  }
+ }
+}
+function addRegexSpans(spans,text,re,cls,priority){
+ re.lastIndex=0; let m; while((m=re.exec(text))){spans.push({start:m.index,end:m.index+m[0].length,cls,priority});if(!m[0].length)re.lastIndex++;}
+}
+function addProcessSpans(spans,text,processes){
+ const fileLike=processes.filter(v=>/\.[A-Za-z0-9]{1,8}$/i.test(v));
+ addLiteralSpans(spans,text,fileLike,'proc',75);
+ const bare=processes.filter(v=>!/\.[A-Za-z0-9]{1,8}$/i.test(v));
+ if(!bare.length)return;
+ const alt=bare.slice().sort((a,b)=>b.length-a.length).map(escapeRegex).join('|');
+ const re=new RegExp('\\b(?:process|process_name|processname|parent|child|shell|engine|proc)\\s*[:=]\\s*["\\\']?('+alt+')(?![A-Za-z0-9_.-])','gi');
+ let m;
+ while((m=re.exec(text))){const rel=m[0].toLowerCase().lastIndexOf(m[1].toLowerCase());if(rel>=0)spans.push({start:m.index+rel,end:m.index+rel+m[1].length,cls:'proc',priority:75});if(!m[0].length)re.lastIndex++;}
+}
+function highlight(rep){
+ const text=rep.raw, spans=[];
+ addLiteralSpans(spans,text,rep.sha512,'hash',100);addLiteralSpans(spans,text,rep.sha256,'hash',100);addLiteralSpans(spans,text,rep.sha1,'hash',100);addLiteralSpans(spans,text,rep.md5,'hash',100);
+ addLiteralSpans(spans,text,rep.urls,'net',95);addLiteralSpans(spans,text,rep.registry,'reg',92);addLiteralSpans(spans,text,rep.paths,'path',90);
+ addLiteralSpans(spans,text,rep.ipv6,'net',88);addLiteralSpans(spans,text,rep.ipv4,'net',88);addLiteralSpans(spans,text,rep.domains,'net',84);
+ addProcessSpans(spans,text,rep.processes);addRegexSpans(spans,text,apiRe,'api',65);addRegexSpans(spans,text,keywordRe,'key',55);
+ spans.sort((a,b)=>b.priority-a.priority||(b.end-b.start)-(a.end-a.start)||a.start-b.start);
+ const chosen=[];
+ for(const s of spans){if(!chosen.some(c=>s.start<c.end&&s.end>c.start))chosen.push(s);}
+ chosen.sort((a,b)=>a.start-b.start);
+ let out='',pos=0;
+ for(const s of chosen){out+=esc(text.slice(pos,s.start));out+=`<mark class="${s.cls}">${esc(text.slice(s.start,s.end))}</mark>`;pos=s.end;}
+ return out+esc(text.slice(pos));
+}
+function section(title,arr,open=false){const content=arr.length?arr.map(x=>'• '+esc(x)).join('\n'):'No indicators detected.';return `<details class="section" ${open?'open':''}><summary>${esc(title)} (${arr.length})</summary><div class="body ${arr.length?'':'empty'}">${content}</div></details>`;}
+function getNetwork(rep){return uniq([...rep.ipv4,...rep.ipv6,...rep.ports,...rep.urls,...summaryDomains(rep)]);}
+function getHashes(rep){return [...rep.sha512.map(x=>'SHA-512: '+x),...rep.sha256.map(x=>'SHA-256: '+x),...rep.sha1.map(x=>'SHA-1: '+x),...rep.md5.map(x=>'MD5: '+x)];}
+function render(){
+ if(!report){results.innerHTML='<div class="empty">Reconstructed sections will appear here.</div>';return;}
+ const network=getNetwork(report),hashes=getHashes(report);
+ $('cProc').textContent=report.processes.length;$('cNet').textContent=network.length;$('cHash').textContent=hashes.length;$('cPath').textContent=report.paths.length;$('cApi').textContent=report.api.length;
+ results.innerHTML=section('Processes / Executables / Scripts',report.processes,true)+section('Network Indicators',network,true)+section('URLs and Domains',summaryUrlsDomains(report))+section('Files and Paths',report.paths)+section('Registry',report.registry)+section('Hashes',hashes)+section('API / Memory Indicators',report.api)+section('Interesting Keywords',report.keywords)+`<details class="section" open><summary>Highlighted Reconstruction</summary><div class="body">${highlight(report)}</div></details><details class="section"><summary>Raw Original — Untouched</summary><div class="body raw">${esc(report.raw)}</div></details>`;
+}
+function reconstruct(){const text=input.value;if(!text.trim()){report=null;render();status.textContent='Nothing to reconstruct.';return;}report=analyze(text);render();status.textContent='Reconstruction complete. Raw Original preserved unchanged.';}
+$('reconstruct').onclick=reconstruct;$('clear').onclick=()=>{input.value='';report=null;reportNameTouched=false;reportName.value=timestampName();render();status.textContent='Cleared.';};
+$('loadSample').onclick=()=>{input.value=`2026-09-18T02:14:07Z host=WS-LAB-07 process=powershell parent=explorer.exe cmdline="powershell=-NoProfile -WindowStyle Hidden -Command <REDACTED_SYNTHETIC_PAYLOAD>" dst_ip=198.51.100.42 dst_port=8443 protocol=TCP domain=update-check.example.test url=hxxps://update-check[.]example[.]test/api/v1/check\naction=WRITE file="C:\\Program Files\\Example Lab\\cache.tmp" sha1=1111111111111111111111111111111111111111 sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa md5=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\naction=REGISTRY path="HKCU\\Software\\ExampleLab\\Run" value="Updater" data="C:\\Users\\Public\\Documents\\cache.tmp"\napi=VirtualAllocEx api=WriteProcessMemory api=CreateRemoteThread\nprocess=cmd cmdline="cmd=/c echo SYNTHETIC_TEST_ONLY"`;reconstruct();};
+const drop=$('drop');['dragenter','dragover'].forEach(e=>drop.addEventListener(e,x=>{x.preventDefault();drop.classList.add('drag');}));['dragleave','drop'].forEach(e=>drop.addEventListener(e,x=>{x.preventDefault();drop.classList.remove('drag');}));drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(!f)return;if(f.size>5*1024*1024){status.textContent='File too large. Phase 1 limit is 5 MB.';return;}const r=new FileReader();r.onload=()=>{input.value=String(r.result);suggestNameFromFile(f.name);status.textContent=`Loaded ${f.name}.`;reconstruct();};r.onerror=()=>status.textContent='Could not read file.';r.readAsText(f);});
+function textReport(){
+ if(!report)return '';
+ const net=getNetwork(report),block=(n,a)=>`[${n}]\n${a.length?a.map(x=>'• '+x).join('\n'):'No indicators detected.'}\n\n`;
+ return `WOLFRE-CONSTRUCTION ANALYST REPORT\nVersion: Phase 1.2.3\nReport Name: ${reportBaseName()}\nGenerated: ${new Date().toISOString()}\n\n`+block('PROCESSES / EXECUTABLES / SCRIPTS',report.processes)+block('NETWORK INDICATORS',net)+block('URLS AND DOMAINS',summaryUrlsDomains(report))+block('FILES AND PATHS',report.paths)+block('REGISTRY',report.registry)+block('SHA-512',report.sha512)+block('SHA-256',report.sha256)+block('SHA-1',report.sha1)+block('MD5',report.md5)+block('API / MEMORY INDICATORS',report.api)+block('INTERESTING KEYWORDS',report.keywords)+`[RAW ORIGINAL — UNTOUCHED]\n${report.raw}\n`;
+}
+function download(name,type,data){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([data],{type}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+$('saveTxt').onclick=()=>{if(!report){status.textContent='Reconstruct something first.';return;}const base=reportBaseName();reportName.value=base;const name=base+'.txt';download(name,'text/plain;charset=utf-8',textReport());status.textContent=`Report download requested as ${name}.`;};
+$('saveHtml').onclick=()=>{
+ if(!report){status.textContent='Reconstruct something first.';return;}
+ const network=getNetwork(report),hashes=getHashes(report);
+ const exportSection=(title,arr)=>`<section><h2>${esc(title)} <span>(${arr.length})</span></h2><pre>${arr.length?arr.map(x=>'• '+esc(x)).join('\n'):'No indicators detected.'}</pre></section>`;
+ const body=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WolfRE Report</title><style>
+ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0b1420;color:#e8f2fb;padding:24px;line-height:1.45}main{max-width:1180px;margin:auto}h1{margin-bottom:4px}.brand-re{color:#ff9f43}.brand-wolf{color:#69c6ff}.brand-construction{color:#e8f2fb}h2{font-size:16px;margin:0 0 8px}h2 span{color:#94aac0;font-weight:400}p{color:#b9c9d8}section{background:#0c1a2b;border:1px solid #29445d;border-radius:10px;padding:12px;margin:10px 0}pre{white-space:pre-wrap;word-break:break-word;background:#07101a;padding:14px;border:1px solid #29445d;border-radius:8px;color:#e8f2fb}mark{padding:1px 3px;border-radius:3px;color:#081018}mark.proc{background:#ffd479}mark.net{background:#8de9e2}mark.path{background:#83e3aa}mark.reg{background:#d1a5ff}mark.hash{background:#ffaaa0}mark.key{background:#b8c8ff}mark.api{background:#ffbd8a}.legend{font-size:12px;color:#b9c9d8}.raw{max-height:none}</style></head><body><main><h1><span class="brand-wolf">Wolf</span><span class="brand-re">RE</span><span class="brand-construction">-Construction</span> Analyst Report</h1><p><b>Report Name:</b> ${esc(reportBaseName())}</p><p>Phase 1.2.3 static offline report. Highlighted reconstruction is an analyst aid; Raw Original is preserved below.</p><p class="legend">Highlight categories: Process / command • Network • File / path • Registry • Hash • API / memory • Interesting keyword</p>${exportSection('Processes / Executables / Scripts',report.processes)}${exportSection('Network Indicators',network)}${exportSection('URLs and Domains',summaryUrlsDomains(report))}${exportSection('Files and Paths',report.paths)}${exportSection('Registry',report.registry)}${exportSection('Hashes',hashes)}${exportSection('API / Memory Indicators',report.api)}${exportSection('Interesting Keywords',report.keywords)}<section><h2>Highlighted Reconstruction</h2><pre>${highlight(report)}</pre></section><section><h2>Raw Original — Untouched</h2><pre class="raw">${esc(report.raw)}</pre></section></main></body></html>`;
+ const base=reportBaseName();reportName.value=base;const name=base+'.html';download(name,'text/html;charset=utf-8',body);status.textContent=`Highlighted HTML report download requested as ${name}.`;
+};
+render();
+</script></body></html>
